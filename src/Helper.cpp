@@ -21,10 +21,9 @@ void Helper::update_buildin_led()
     }    
 }
 
-void Helper::switch_buildin_led()
+void Helper::switch_buildin_led(int onoff)
 {
-    buildin_led=ledcRead(0);
-    buildin_led=buildin_led!=true;
+    buildin_led=onoff;
 }
 
 void Helper::dim_buildin_led(int brightness)
@@ -35,7 +34,9 @@ void Helper::dim_buildin_led(int brightness)
 void Helper::send_handshake_packet(AsyncUDPPacket& packet)
 {
     stringstream ss;
-    ss << handshake_msg << ':' << ledcRead(0);
+    ss << handshake_msg << ":0:" << buildin_led;
+    ss << ":1:" << buildin_led_brightness;
+    ss << ":2:0:3:0";
 
     string s=ss.str();
     udp->writeTo((const uint8_t*)s.c_str(),s.size(),packet.remoteIP(),19680);
@@ -50,7 +51,6 @@ void Helper::create_udb_server()
     {
         udp->onPacket([&](AsyncUDPPacket packet)
         {
-            Serial.println((const char*)packet.data());
             Helper::UDP_COMMAND cmd=NONE;
 
             const char* data=nullptr;
@@ -68,7 +68,7 @@ void Helper::create_udb_server()
             switch(cmd)
             {
                 case BUILDIN_LED_SWITCH:
-                    Helper::switch_buildin_led();
+                    Helper::switch_buildin_led(atoi(data));
                     break;
                 case BUILDIN_LED_DIMM:
                     Helper::dim_buildin_led(atoi(data));

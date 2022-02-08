@@ -22,7 +22,7 @@ private:
 
     const char* handshake_msg="ESP32HNDSHK";
 
-    void switch_buildin_led();
+    void switch_buildin_led(int onoff);
     void dim_buildin_led(int brightness);
     void create_udb_server();
 
