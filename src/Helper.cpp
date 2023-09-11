@@ -34,8 +34,9 @@ void Helper::dim_buildin_led(int brightness)
 void Helper::send_handshake_packet(AsyncUDPPacket& packet)
 {
     stringstream ss;
-    ss << handshake_msg << ":0:" << buildin_led;
-    ss << ":1:" << buildin_led_brightness;
+    
+    ss << HANDSHAKE << ":" << BUILDIN_LED_SWITCH << ":" << buildin_led;
+    ss << ":" << BUILDIN_LED_DIMM << ":" << buildin_led_brightness;
     ss << ":2:0:3:0";
 
     string s=ss.str();
@@ -51,7 +52,12 @@ void Helper::create_udb_server()
     {
         udp->onPacket([&](AsyncUDPPacket packet)
         {
+
             Helper::UDP_COMMAND cmd=NONE;
+            if(packet.length()>0)
+            {
+                cmd=UDP_COMMAND((int)packet.data()[0]);
+            }
 
             const char* data=nullptr;
             string data_str=(const char*)packet.data();
@@ -59,10 +65,7 @@ void Helper::create_udb_server()
           
             int pos=data_str.find(":");
             if(pos!=string::npos) {
-                cmd=UDP_COMMAND(atoi(data_str.substr(0,pos).c_str()));
                 data=data_str.substr(pos+1).c_str();
-            } else {
-                cmd=UDP_COMMAND(atoi(data_str.c_str()));
             }
 
             switch(cmd)
